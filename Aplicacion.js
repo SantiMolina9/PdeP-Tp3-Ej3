@@ -1,5 +1,6 @@
 const Tarea = require("./Tarea");
 const readline = require("readline");
+const prompt = require("prompt-sync")();
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -49,11 +50,23 @@ Aplicacion.prototype.showMainMenu = function () {
 //Crea las tareas y las inserta en el array
 Aplicacion.prototype.createTask = function () {
     console.clear();
+    const newTask = new Tarea();
     rl.question("Ingrese el título de la nueva tarea: ", (titulo) => {
+        newTask.setTitulo(titulo);
         rl.question("Ingrese la descripción de la tarea: ", (descripcion) => {
+            newTask.setDescripcion(descripcion);
             let estado = "pendiente"; 
             rl.question("Ingrese la dificultad de la tarea (facil, intermedio, dificil): ", (dificultad) => {
-                const newTask = new Tarea(titulo, descripcion, estado, dificultad);
+                newTask.setDificultad(dificultad);
+                let fechaVencimiento = prompt("Ingrese la fecha de vencimiento de la tarea: ");
+
+                    while (fechaVencimiento !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(fechaVencimiento)) {
+                        console.log("El formato de la fecha de vencimiento es incorrecto. Debe ser YYYY-MM-DD.");
+                        fechaVencimiento = prompt("Ingrese la fecha de vencimiento (opcional, formato: YYYY-MM-DD): ");
+                    }
+                
+                newTask.setFechaVencimiento(fechaVencimiento);
+                newTask.setEstado(estado);
                 this.tareas.push(newTask); // Inserto la nueva tarea en el array
                 console.log("Tarea creada exitosamente.");
                 this.showMainMenu(); // Volver al menú principal
@@ -76,7 +89,7 @@ Aplicacion.prototype.modifyTask = function () {
         const taskIndex = parseInt(nroTarea) - 1;
         if (taskIndex >= 0 && taskIndex < this.tareas.length) { //Verifico que el numero elegido por el usuario sea valido
         const taskToModify = this.tareas[taskIndex]; 
-        console.log(`Tarea seleccionada: ${taskToModify.titulo}`);
+        console.log(`Tarea seleccionada: ${taskToModify.getTitulo()}`);
         console.log("¿Qué atributo desea modificar?");
         console.log("1- Título");
         console.log("2- Descripción");
@@ -87,14 +100,14 @@ Aplicacion.prototype.modifyTask = function () {
             switch (opAtributo) {
             case "1":
                 rl.question("Ingrese el nuevo título: ", (nuevoTitulo) => {
-                taskToModify.titulo = nuevoTitulo;
+                taskToModify.setTitulo(nuevoTitulo);
                 console.log("Título modificado exitosamente.");
                 this.showMainMenu();
             });
                 break;
             case "2":
                 rl.question("Ingrese la nueva descripción: ", (nuevaDescripcion) => {
-                taskToModify.descripcion = nuevaDescripcion;
+                taskToModify.setDescripcion(nuevaDescripcion);
                 console.log("Descripción modificada exitosamente.");
                 this.showMainMenu();
             });
@@ -103,7 +116,7 @@ Aplicacion.prototype.modifyTask = function () {
                 rl.question("Ingrese el nuevo estado (Pendiente, En curso, Terminado, Cancelado): ", (nuevoEstado) => {
                 nuevoEstado = nuevoEstado.toLowerCase();
                 if (["pendiente", "en curso", "terminado", "cancelado"].includes(nuevoEstado)) {
-                    taskToModify.estado = nuevoEstado;
+                    taskToModify.setEstado(nuevoEstado);
                     console.log("Estado modificado exitosamente.");
                 } else {
                     console.log("Estado no válido. No se realizó ninguna modificación.");
@@ -115,7 +128,7 @@ Aplicacion.prototype.modifyTask = function () {
                 rl.question("Ingrese la nueva dificultad (facil, intermedio, dificil): ", (nuevaDificultad) => {
                 nuevaDificultad = nuevaDificultad.toLowerCase();
                 if (["facil", "intermedio", "dificil"].includes(nuevaDificultad)) {
-                    taskToModify.dificultad = nuevaDificultad;
+                    taskToModify.setDificultad(nuevaDificultad);
                     console.log("Dificultad modificada exitosamente.");
                 } else {
                     console.log("Dificultad no válida. No se realizó ninguna modificación.");
@@ -138,46 +151,76 @@ Aplicacion.prototype.modifyTask = function () {
 
 
 
-Aplicacion.prototype.showAllTasks = function () { //Muestro todas las tareas en el array
+Aplicacion.prototype.showAllTasks = function () {
+    console.clear();
+    if(this.tareas.length === 0){
+        console.log("No hay tareas cargadas.");
+        this.showMainMenu();
+    }
+    else{
+    console.log("Todas las tareas:");
     this.tareas.forEach((tarea, index) => {
-    console.log(`Tarea ${index + 1}:`);
-    tarea.mostrarInfo();
-    console.log('----------------------');
+        console.log(`Tarea ${index + 1}:`);
+        console.log(`Título: ${tarea.getTitulo()}`);
+        console.log(`Descripción: ${tarea.getDescripcion()}`);
+        console.log(`Estado: ${tarea.getEstado()}`); // Utiliza el getter para obtener el estado
+        console.log(`Dificultad: ${tarea.getDificultad()}`);
+        console.log(`Fecha de Creación: ${tarea.getFechaCreacion()}`);
+        console.log(`Fecha de Vencimiento: ${tarea.getFechaVencimiento()}`);
+        console.log('----------------------');
     });
     this.showMainMenu();
+    }
 };
+
 
 Aplicacion.prototype.showPendingTasks = function () { //Muestro las tareas pendientes
+    if(this.tareas.length === 0){
+        console.log("No hay tareas cargadas.");
+        this.showMainMenu();
+    }
+    else{
     console.log("Tareas Pendientes:");
     this.tareas.forEach((tarea) => {
-        if (tarea.estado === 'pendiente') {
+        if (tarea.getEstado() === 'pendiente') {
         tarea.mostrarInfo();
         console.log('----------------------');
         }
     });
     this.showMainMenu();
-};
+    };
+}
 
 Aplicacion.prototype.showInProgressTasks = function () { //Muestro las tareas en curso
+    if(this.tareas.length === 0){
+        console.log("No hay tareas cargadas.");
+        this.showMainMenu();
+    }else{
     console.log("Tareas en Curso:");
     this.tareas.forEach((tarea) => {
-        if (tarea.estado === 'en curso') {
+        if (tarea.getEstado() === 'en curso') {
         tarea.mostrarInfo();
         console.log('----------------------');
         }
     });
     this.showMainMenu();
+    }
 };
 
 Aplicacion.prototype.showCompletedTasks = function () { //Muestro las tareas Terminadas
+    if(this.tareas.length === 0){
+        console.log("No hay tareas cargadas.");
+        this.showMainMenu();
+    }else{
     console.log("Tareas Terminadas:");
     this.tareas.forEach((tarea) => {
-        if (tarea.estado === 'terminado') {
+        if (tarea.getEstado() === 'terminado') {
         tarea.mostrarInfo();
         console.log('----------------------');
         }
     });
     this.showMainMenu();
+    }
 };
 
 
@@ -224,7 +267,7 @@ Aplicacion.prototype.deleteTask = function () {
         if (taskIndex >= 0 && taskIndex < this.tareas.length) {
         const taskToDelete = this.tareas[taskIndex];
 
-        console.log(`Tarea seleccionada para eliminar: ${taskToDelete.titulo}`);
+        console.log(`Tarea seleccionada para eliminar: ${taskToDelete.getTitulo()}`);
 
         rl.question("¿Está seguro de que desea eliminar esta tarea? (Sí/No): ", (confirmacion) => {
             if (confirmacion.toLowerCase() === "si") {
