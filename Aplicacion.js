@@ -64,7 +64,7 @@ Aplicacion.prototype.createTask = function () {
                         console.log("El formato de la fecha de vencimiento es incorrecto. Debe ser YYYY-MM-DD.");
                         fechaVencimiento = prompt("Ingrese la fecha de vencimiento (opcional, formato: YYYY-MM-DD): ");
                     }
-                
+                    
                 newTask.setFechaVencimiento(fechaVencimiento);
                 newTask.setEstado(estado);
                 this.tareas.push(newTask); // Inserto la nueva tarea en el array
